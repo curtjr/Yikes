@@ -21,7 +21,7 @@ class Client:
         return buffer.decode()
     
 class Server:
-    def __init__(self, host="0.0.0.0",on_client_connect=None):
+    def __init__(self, host="0.0.0.0",on_client_connect=function):
         self.on_client_connect = on_client_connect
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((host, port))
