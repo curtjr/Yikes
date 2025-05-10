@@ -26,13 +26,5 @@ class Server:
         self.server.bind((host, port))
         self.server.listen(10)  # Allow up to 10 connections
         print(f"Server listening on port {port}...")
-
-    def run(self):
-        while True:
-            conn, addr = self.server.accept()
-            print(f"Connection from {addr}")
-            data = conn.recv(1024).decode()
-            print(f"Received: {data}")
-            conn.send("Hello, Client!".encode())  # Send response
-            conn.close()
+        
 
