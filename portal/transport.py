@@ -2,6 +2,7 @@ import socket
 
 port = 22
 host = "0.0.0.0"
+max_connections = 10
 
 class Client:
     def __init__(self, host):
@@ -21,11 +22,11 @@ class Client:
         return buffer.decode()
     
 class Server:
-    def __init__(self, host="0.0.0.0",on_client_connect=function):
+    def __init__(self,on_client_connect=None):
         self.on_client_connect = on_client_connect
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((host, port))
-        self.server.listen(10)  # Allow up to 10 connections
+        self.server.listen(max_connections)  # Allow up to 10 connections
         print(f"Server listening on port {port}...")
 
     def run(self):
