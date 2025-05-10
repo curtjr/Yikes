@@ -1,6 +1,7 @@
 import socket
 
 port = 24
+host = "0.0.0.0"
 
 class Client:
     def __init__(self, host):
@@ -34,4 +35,7 @@ class Server:
             print(f"Received: {data}")
             conn.send("Hello, Client!".encode())  # Send response
             conn.close()
+
+    def get_server_info(self):
+        return {"host": host, "port": port}
 
