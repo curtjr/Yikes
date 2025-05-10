@@ -26,7 +26,6 @@ class Server:
         self.server.bind((host, port))
         self.server.listen(10)  # Allow up to 10 connections
         print(f"Server listening on port {port}...")
-        return self.server
 
     def run(self):
         while True:
