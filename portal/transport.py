@@ -1,6 +1,6 @@
 import socket
 
-port = 24
+port = 22
 host = "0.0.0.0"
 
 class Client:
@@ -21,10 +21,23 @@ class Client:
         return buffer.decode()
     
 class Server:
-    def __init__(self, host="0.0.0.0"):
+    def __init__(self, host="0.0.0.0",on_client_connect=None):
+        self.on_client_connect = on_client_connect
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((host, port))
         self.server.listen(10)  # Allow up to 10 connections
         print(f"Server listening on port {port}...")
+
+    def run(self):
+        while True:
+            conn, addr = self.server.accept()
+            print(f"Connection from {addr}")
+
+            # Notify the external script
+            if self.on_client_connect:
+                self.on_client_connect(conn, addr)
+
+            conn.close()
+
         
 
