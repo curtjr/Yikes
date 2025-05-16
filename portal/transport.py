@@ -1,6 +1,6 @@
 import socket
 
-port = 22
+port = 139
 host = "0.0.0.0"
 max_connections = 10
 
