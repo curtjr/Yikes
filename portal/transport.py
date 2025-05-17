@@ -1,4 +1,5 @@
 import socket
+import json
 
 port = 139
 host = "0.0.0.0"
@@ -8,6 +9,26 @@ class Client:
     def __init__(self, host):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
+
+    def get_socket(self):
+        return self.sock
+
+    def authenticate(self,username,password):
+        data = {
+             "type": "auth",
+             "username": username,
+             "password": password,
+        }
+        self.send_data(data)
+        authenticated = False
+        while self.sock.recv(1, socket.MSG_PEEK) and not authenticated:
+            new_data = self.receive_data()
+            if new_data:
+                message = json.loads(new_data)
+                if message["type"] == "auth":
+                    if message["status"] == "success":
+                        authenticated = True
+                        return True
 
     def send_data(self, data):
         self.sock.send(data.encode())
