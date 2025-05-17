@@ -6,6 +6,6 @@ def connect(host):
     transport = Client(host)
     return transport
 
-def start_server(callback):
-    transport = Server(callback)
+def start_server(auth,callback):
+    transport = Server(auth,callback)
     return transport

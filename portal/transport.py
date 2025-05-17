@@ -42,9 +42,17 @@ class Client:
             buffer += chunk
         return buffer.decode()
     
+def check_auth(username, password, auth):
+    clients = json.loads(auth)
+    for client in clients['clients']:
+        if client['username'] == username and client['password'] == password:
+            return True
+    return False
+
 class Server:
-    def __init__(self,on_client_connect=None):
+    def __init__(self,auth,on_client_connect=None):
         self.on_client_connect = on_client_connect
+        self.auth = json.loads(auth)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((host, port))
         self.server.listen(max_connections)  # Allow up to 10 connections
@@ -54,6 +62,29 @@ class Server:
         while True:
             conn, addr = self.server.accept()
             print(f"Connection from {addr}")
+            socket = conn
+            while socket.recv(1, socket.MSG_PEEK) and not authenticated:
+                try:
+                    data = socket.recv(1024).decode().strip()
+                    if not data:
+                        break
+                    message = json.loads(data)
+                    if message['type'] == 'auth':
+                        result = check_auth(message['username'], message['password'],self.auth)
+                        if result:
+                            result_data={
+                                "type": "auth",
+                                "status": "success",
+                            }
+                            socket.send(result_data.encode())
+                            authenticated = True
+                        else:
+                            socket.send("failed".encode())
+                            socket.close()
+                            break
+                except Exception as e:
+                    print(f"Error: {e}")
+                    break
 
             # Notify the external script
             if self.on_client_connect:
