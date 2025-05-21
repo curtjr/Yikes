@@ -19,7 +19,7 @@ class Client:
              "username": username,
              "password": password,
         }
-        self.send_data(data)
+        self.send_data(json.dumps(data))
         authenticated = False
         while self.sock.recv(1, socket.MSG_PEEK) and not authenticated:
             new_data = self.receive_data()
@@ -76,7 +76,7 @@ class Server:
                                 "type": "auth",
                                 "status": "success",
                             }
-                            socket.send(result_data.encode())
+                            socket.send(json.dumps(result_data).encode())
                             authenticated = True
                         else:
                             socket.send("failed".encode())
