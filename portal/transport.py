@@ -31,7 +31,7 @@ class Client:
                         return True
 
     def send_data(self, data):
-        self.sock.send(data.encode())
+        self.sock.send(data.encode("utf-8", errors="ignore"))
 
     def receive_data(self):
         buffer = b""
@@ -40,7 +40,7 @@ class Client:
             if not chunk:  # Stop when no more data is received
                 break
             buffer += chunk
-        return buffer.decode()
+        return buffer.decode("utf-8", errors="ignore")
     
 def check_auth(username, password, auth):
     clients = json.loads(auth)
@@ -65,7 +65,7 @@ class Server:
             socket = conn
             while socket.recv(1, socket.MSG_PEEK) and not authenticated:
                 try:
-                    data = socket.recv(1024).decode().strip()
+                    data = socket.recv(1024).decode("utf-8", errors="ignore").strip()
                     if not data:
                         break
                     message = json.loads(data)
@@ -76,10 +76,12 @@ class Server:
                                 "type": "auth",
                                 "status": "success",
                             }
-                            socket.send(json.dumps(result_data).encode())
+                            socket.send(json.dumps(result_data).encode("utf-8", errors="ignore"
+))
                             authenticated = True
                         else:
-                            socket.send("failed".encode())
+                            socket.send("failed".encode("utf-8", errors="ignore"
+))
                             socket.close()
                             break
                 except Exception as e:
