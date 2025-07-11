@@ -69,7 +69,7 @@ class Server:
                     try:
                         data = socket.recv(1024).decode("utf-8", errors="ignore").strip()
                         if not data:
-                            break
+                            continue
                         message = json.loads(data)
                         if message['type'] == 'auth':
                             result = check_auth(message['username'], message['password'],self.auth)
@@ -83,10 +83,10 @@ class Server:
                             else:
                                 socket.send("failed".encode("utf-8", errors="ignore"))
                                 socket.close()
-                                break
+                                continue
                     except Exception as e:
                         print(f"Error: {e}")
-                        break
+                        continue
 
                 # Notify the external script
                 if self.on_client_connect:
