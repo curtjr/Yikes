@@ -1,7 +1,7 @@
 import socket
 import json
 
-port = 139
+port = 22
 host = "0.0.0.0"
 max_connections = 10
 
