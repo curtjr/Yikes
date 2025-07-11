@@ -63,36 +63,39 @@ class Server:
             conn, addr = self.server.accept()
             print(f"Connection from {addr}")
             socket = conn
-            while socket.recv(1, socket.MSG_PEEK) and not authenticated:
-                try:
-                    data = socket.recv(1024).decode("utf-8", errors="ignore").strip()
-                    if not data:
-                        break
-                    message = json.loads(data)
-                    if message['type'] == 'auth':
-                        result = check_auth(message['username'], message['password'],self.auth)
-                        if result:
-                            result_data={
-                                "type": "auth",
-                                "status": "success",
-                            }
-                            socket.send(json.dumps(result_data).encode("utf-8", errors="ignore"
-))
-                            authenticated = True
-                        else:
-                            socket.send("failed".encode("utf-8", errors="ignore"
-))
-                            socket.close()
+            try:
+                socket.setblocking(False)
+                while not authenticated:
+                    try:
+                        data = socket.recv(1024).decode("utf-8", errors="ignore").strip()
+                        if not data:
                             break
-                except Exception as e:
-                    print(f"Error: {e}")
-                    break
+                        message = json.loads(data)
+                        if message['type'] == 'auth':
+                            result = check_auth(message['username'], message['password'],self.auth)
+                            if result:
+                                result_data={
+                                    "type": "auth",
+                                    "status": "success",
+                                }
+                                socket.send(json.dumps(result_data).encode("utf-8", errors="ignore"))
+                                authenticated = True
+                            else:
+                                socket.send("failed".encode("utf-8", errors="ignore"))
+                                socket.close()
+                                break
+                    except Exception as e:
+                        print(f"Error: {e}")
+                        break
 
-            # Notify the external script
-            if self.on_client_connect:
-                self.on_client_connect(conn, addr)
+                # Notify the external script
+                if self.on_client_connect:
+                    self.on_client_connect(conn, addr)
 
-            conn.close()
+                conn.close()
+            except Exception as e:
+                print(f"Error handling connection: {e}")
+                conn.close()
 
         
 
