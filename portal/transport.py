@@ -1,101 +1,88 @@
 import socket
 import json
+import select
+
+from portal.auth import Authenticator
 
 port = 22
 host = "0.0.0.0"
 max_connections = 10
 
-class Client:
-    def __init__(self, host):
+class SocketHandler:
+    def send_message(self, message_dict):
+        raw = json.dumps(message_dict).encode()
+        self.sock.sendall(raw)
+
+    def receive_message(self, timeout=0.1):
+        ready, _, _ = select.select([self.sock], [], [], timeout)
+        if not ready:
+            return None
+        data = b""
+        try:
+            chunk = self.sock.recv(4096)
+            if chunk:
+                data += chunk
+        except BlockingIOError:
+            pass
+        return data.decode("utf-8", errors="ignore")
+
+class Client(SocketHandler):
+    def __init__(self, host, port, auth_store):
+        super().__init__()  
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
-    def get_socket(self):
-        return self.sock
+        # Prepare authenticator with your credential store
+        self.auth = Authenticator(auth_store)
 
-    def authenticate(self,username,password):
-        data = {
-             "type": "auth",
-             "username": username,
-             "password": password,
-        }
-        self.send_data(json.dumps(data))
-        authenticated = False
-        while self.sock.recv(1, socket.MSG_PEEK) and not authenticated:
-            new_data = self.receive_data()
-            if new_data:
-                message = json.loads(new_data)
-                if message["type"] == "auth":
-                    if message["status"] == "success":
-                        authenticated = True
-                        return True
+    def authenticate(self, username, password):
+        # Sends credentials and waits for server approval.
+        return self.auth.client_handshake(self, username, password)
 
-    def send_data(self, data):
-        self.sock.send(data.encode("utf-8", errors="ignore"))
-
-    def receive_data(self):
-        buffer = b""
-        while True:
-            chunk = self.sock.recv(1024)
-            if not chunk:  # Stop when no more data is received
-                break
-            buffer += chunk
-        return buffer.decode("utf-8", errors="ignore")
-    
-def check_auth(username, password, auth):
-    clients = json.loads(auth)
-    for client in clients['clients']:
-        if client['username'] == username and client['password'] == password:
-            return True
-    return False
-
-class Server:
-    def __init__(self,auth,on_client_connect=None):
+class Server(SocketHandler):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        auth_store: dict,
+        on_client_connect=None,
+        max_connections: int = 10
+    ):
+        super().__init__()  
+        self.auth = Authenticator(auth_store)
         self.on_client_connect = on_client_connect
-        self.auth = json.loads(auth)
+
+        # Create and bind the listening socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((host, port))
-        self.server.listen(max_connections)  # Allow up to 10 connections
-        print(f"Server listening on port {port}...")
+        self.server.listen(max_connections)
+
+        print(f"Server listening on {host}:{port}")
 
     def run(self):
-        while True:
-            conn, addr = self.server.accept()
-            print(f"Connection from {addr}")
-            socket = conn
-            try:
-                socket.setblocking(False)
-                while not authenticated:
-                    try:
-                        data = socket.recv(1024).decode("utf-8", errors="ignore").strip()
-                        if not data:
-                            continue
-                        message = json.loads(data)
-                        if message['type'] == 'auth':
-                            result = check_auth(message['username'], message['password'],self.auth)
-                            if result:
-                                result_data={
-                                    "type": "auth",
-                                    "status": "success",
-                                }
-                                socket.send(json.dumps(result_data).encode("utf-8", errors="ignore"))
-                                authenticated = True
-                            else:
-                                socket.send("failed".encode("utf-8", errors="ignore"))
-                                socket.close()
-                                continue
-                    except Exception as e:
-                        print(f"Error: {e}")
-                        continue
+        """Main loop: accept connections, authenticate, then hand off."""
+        try:
+            while True:
+                conn, addr = self.server.accept()
+                print(f"Connection from {addr}")
 
-                # Notify the external script
-                if self.on_client_connect:
-                    self.on_client_connect(conn, addr)
+                # Swap in the client socket for I/O
+                self.sock = conn
+
+                # Run the auth handshake over that socket
+                if self.auth.server_handshake(self):
+                    print(f"Client {addr} authenticated successfully.")
+                    if self.on_client_connect:
+                        self.on_client_connect(conn, addr)
+                else:
+                    print(f"Client {addr} failed authentication.")
 
                 conn.close()
-            except Exception as e:
-                print(f"Error handling connection: {e}")
-                conn.close()
+        finally:
+            self.server.close()
+
+
 
         
 

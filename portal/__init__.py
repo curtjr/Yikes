@@ -1,11 +1,10 @@
-from portal.transport import Client
-from portal.transport import Server
-from portal.commands import CommandExecutor
+from portal.transport import Client, Server
+from portal.auth import Authenticator
 
-def connect(host):
-    transport = Client(host)
+def create_client(host, port, auth_store):
+    transport = Client(host, port, auth_store)
     return transport
 
-def start_server(auth,callback):
-    transport = Server(auth,callback)
+def create_server(auth_data,callback):
+    transport = Server(auth_data,callback)
     return transport
