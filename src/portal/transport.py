@@ -4,7 +4,6 @@ import select
 
 from portal.auth import Authenticator
 
-port = 22
 host = "0.0.0.0"
 max_connections = 10
 

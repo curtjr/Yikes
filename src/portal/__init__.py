@@ -1,7 +1,7 @@
 from portal.transport import Client, Server
 from portal.auth import Authenticator
 
-def create_client(host: str, port: int):
+def create_client(host: str, port=22):
     transport = Client(host, port)
     return transport
 
