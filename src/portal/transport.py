@@ -35,7 +35,7 @@ class Client(SocketHandler):
         # Prepare authenticator with your credential store
         self.auth = Authenticator()
 
-    def authenticate(self, username, password):
+    def authenticate(self, username: str, password: str):
         # Sends credentials and waits for server approval.
         return self.auth.client_handshake(self, username, password)
 
