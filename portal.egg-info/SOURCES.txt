@@ -1,9 +1,0 @@
-README.md
-pyproject.toml
-portal/__init__.py
-portal/commands.py
-portal/transport.py
-portal.egg-info/PKG-INFO
-portal.egg-info/SOURCES.txt
-portal.egg-info/dependency_links.txt
-portal.egg-info/top_level.txt
