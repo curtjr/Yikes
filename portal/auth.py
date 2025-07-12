@@ -2,7 +2,7 @@ import json
 import jwt
 
 class Authenticator:
-    def __init__(self, auth_data):
+    def __init__(self, auth_data=None):
         self.auth_data = auth_data
         
     def client_handshake(self, transport, username, password):

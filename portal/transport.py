@@ -27,13 +27,13 @@ class SocketHandler:
         return data.decode("utf-8", errors="ignore")
 
 class Client(SocketHandler):
-    def __init__(self, host, port, auth_store):
+    def __init__(self, host, port):
         super().__init__()  
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
 
         # Prepare authenticator with your credential store
-        self.auth = Authenticator(auth_store)
+        self.auth = Authenticator()
 
     def authenticate(self, username, password):
         # Sends credentials and waits for server approval.
