@@ -2,23 +2,23 @@ import json
 import jwt
 
 class Authenticator:
-    def __init__(self, auth_data=None):
-        self.auth_data = auth_data
+    def __init__(self, auth_store=None):
+        self.auth_store = auth_store
         
-    def client_handshake(self, transport, username, password):
-        transport.send_message({"type": "auth", "username": username, "password": password})
+    def client_handshake(self, transport, fernet, sock, username, password):
+        transport.send_encrypted(sock,fernet,{"type": "auth", "username": username, "password": password})
         while True:
-            msg = transport.receive_message()
+            msg = transport.receive_encrypted(sock,fernet)
             if msg and msg.get("type") == "auth":
                 return msg.get("status") == "success"
 
-    def server_handshake(self, transport):
+    def server_handshake(self, transport, sock, fernet):
         while True:
-            msg = transport.receive_message()
+            msg = transport.receive_encrypted(sock,fernet)
             if msg and msg.get("type") == "auth":
                 user, pw = msg["username"], msg["password"]
                 ok = self.auth_store.get(user) == pw
-                transport.send_message({"type": "auth", "status": "success" if ok else "failed"})
+                transport.send_encrypted(sock,fernet,{"type": "auth", "status": "success" if ok else "failed"})
                 return ok
 
 class StaticTokenAuthenticator:
