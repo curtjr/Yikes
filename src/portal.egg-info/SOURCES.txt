@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/portal/__init__.py
 src/portal/auth.py
+src/portal/socks.py
 src/portal/transport.py
 src/portal.egg-info/PKG-INFO
 src/portal.egg-info/SOURCES.txt
