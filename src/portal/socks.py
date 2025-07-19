@@ -15,35 +15,51 @@ def recv_exact(sock: socket.socket, length: int):
 
 class SocketHandler:
     def send_key(self, sock: socket.socket, key_bytes: bytes):
-        length = len(key_bytes)
-        header = struct.pack('>I', length)
-        sock.sendall(header + key_bytes)
+        try:
+            length = len(key_bytes)
+            header = struct.pack('>I', length)
+            sock.sendall(header + key_bytes)
+        except Exception as e:
+            print(f"Error sending key {e}")
 
     def receive_public_key(self, sock: socket.socket):
-        header = recv_exact(sock, 4) # Get header (has length of key)
-        length, = struct.unpack(">I", header) # Length of key
+        try:
+            header = recv_exact(sock, 4) # Get header (has length of key)
+            length, = struct.unpack(">I", header) # Length of key
 
-        der_bytes = recv_exact(sock, length) # Receive key
-        public_key = serialization.load_der_public_key(der_bytes) # Deserialize key
-        return public_key
+            der_bytes = recv_exact(sock, length) # Receive key
+            public_key = serialization.load_der_public_key(der_bytes) # Deserialize key
+            return public_key
+        except Exception as e:
+            print(f"Error receiving public key: {e}")
     
     def receive_fernet_key(self, sock: socket.socket):
-        header = recv_exact(sock, 4)
-        length, = struct.unpack(">I", header)
+        try:
+            header = recv_exact(sock, 4)
+            length, = struct.unpack(">I", header)
 
-        key_bytes = recv_exact(sock, length)
-        return key_bytes
+            key_bytes = recv_exact(sock, length)
+            return key_bytes
+        except Exception as e:
+            print(f"Error receiving fernet key {e}")
 
     def send_data(self, sock: socket.socket, data: bytes):
-        ciphertext = self.fernet.encrypt(data)
-        header = struct.pack(">I", len(ciphertext))
-        sock.sendall(header + ciphertext)
+        try:
+            ciphertext = self.fernet.encrypt(data)
+            length = len(ciphertext)
+            header = struct.pack(">I", length)
+            sock.sendall(header + ciphertext)
+        except Exception as e:
+            print(f"Error sending data: {e}")
 
     def receive_data(self, sock: socket.socket):
-        header = recv_exact(sock, 4)
-        length, = struct.unpack(">I", header)
-        ciphertext = recv_exact(sock, length)
+        try:
+            header = recv_exact(sock, 4)
+            length, = struct.unpack(">I", header)
+            ciphertext = recv_exact(sock, length)
 
-        data = self.fernet.decrypt(ciphertext)
-        return data
+            data = self.fernet.decrypt(ciphertext)
+            return data
+        except Exception as e:
+            print(f"Error receiving data: {e}")
 

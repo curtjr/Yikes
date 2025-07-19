@@ -1,5 +1,7 @@
 import jwt
 import base64
+import socket
+import threading
 import os
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
@@ -24,25 +26,27 @@ class Authenticator:
             ))
 
     def client_handshake(self):
-        self.public_key = None
-        while self.public_key is None:
-            self.public_key = self.receive_public_key(self.sock)
+        try:
+            self.public_key = None
+            while self.public_key is None:
+                self.public_key = self.receive_public_key(self.sock)
+            
+            self.new_client_key()
+            self.send_key(self.sock, self.encrypted_key)
+            print("Client handshake successful")
+            return True
+        except Exception as e:
+            print(f"Client handshake error: {e} -client")
+            return False
 
-        print("Public key received")
-        
-        self.new_client_key()
-        print("Client encrypted fernet")
-        self.send_key(self.sock, self.encrypted_key)
-        print("Client sent key")
-
-    def server_handshake(self, conn, addr):
+    def server_handshake(self, sock, addr):
         # send your public key once
         der_bytes = self.public_key.public_bytes(encoding=serialization.Encoding.DER,format=serialization.PublicFormat.SubjectPublicKeyInfo)
-        self.send_key(conn, der_bytes)
-        print("Server sent public key")
+        self.send_key(sock, der_bytes)
 
-        key_bytes = self.receive_fernet_key(conn)
-        print("Server received client fernet")
+        key_bytes = None
+        while key_bytes is None:
+            key_bytes = self.receive_fernet_key(sock)
             
         fernet_key = self.private_key.decrypt(
             key_bytes,
@@ -52,44 +56,12 @@ class Authenticator:
                 label=None
             )
         )
-        print("Server decrypted fernet")
 
         try:
             self.fernet = Fernet(fernet_key)
             print(f"Client {addr} authenticated successfully.")
-            return True
+            
+            return True, fernet_key
         except Exception:
             print(f"Client {addr} failed authentication.")
             return False
-            
-        
-
-
-class StaticTokenAuthenticator:
-    def __init__(self, valid_tokens):
-        self.valid_tokens = set(valid_tokens)
-
-    def client_handshake(self, transport, token):
-        transport.send_message({"type": "token", "token": token})
-        while True:
-            msg = transport.receive_message()
-            if not msg:
-                continue
-            if msg.get("type") != "token":
-                continue
-            return msg.get("status") == "success"
-
-    def server_handshake(self, transport):
-        while True:
-            msg = transport.receive_message()
-            if not msg:
-                continue
-            if msg.get("type") != "token":
-                continue
-
-            presented = msg.get("token")
-            ok = presented in self.valid_tokens
-            status = "success" if ok else "failed"
-            transport.send_message({"type": "token", "status": status})
-            return ok
-    
