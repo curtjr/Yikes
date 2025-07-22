@@ -122,7 +122,7 @@ class ClientHandler(threading.Thread):
             success, fernet_key = server.server_handshake(sock,addr)
             if success:
                 print(f"Server handshake successful")
-                session = self.Session(sock,addr,fernet_key,threading.current_thread)
+                session = Session(sock,addr,fernet_key,threading.current_thread)
                 if callback:
                     callback(session)
             else:
