@@ -44,6 +44,13 @@ class SocketHandler:
             print(f"Error receiving fernet key {e}")
 
     def send_data(self, sock: socket.socket, data: bytes):
+        """
+        Encrypts data using a Fernet, and sends the data over a socket.
+
+        Args:
+            sock(socket.socket): Socket to encrypt and send data through.
+            data(bytes): Data that will be encrypted and sent.
+        """
         try:
             ciphertext = self.fernet.encrypt(data)
             length = len(ciphertext)
@@ -53,6 +60,15 @@ class SocketHandler:
             print(f"Error sending data: {e}")
 
     def receive_data(self, sock: socket.socket):
+        """
+        Waits for and receives data from a socket, and decrypts the data using a Fernet.
+
+        Args:
+            sock(socket.socket): Socket to encrypt and send data through.
+
+        Returns:
+            data(bytes): Data received from the socket
+        """
         try:
             header = recv_exact(sock, 4)
             length, = struct.unpack(">I", header)
