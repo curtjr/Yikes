@@ -4,8 +4,8 @@ import base64
 import threading
 import os
 from cryptography.fernet import Fernet
-from portal.auth import Authenticator
-from portal.socks import SocketHandler
+from yikes.auth import Authenticator
+from yikes.socks import SocketHandler
 
 "'CLIENT'"
 class Client(SocketHandler,Authenticator):
