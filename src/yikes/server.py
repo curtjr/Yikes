@@ -7,23 +7,21 @@ class Server():
     Server class used for accepting client connections.
     To create a server please use the create_server() function!
     """
-    def __init__(self, addr):
+    def __init__(self):
         super().__init__()  
 
         self.max_connections = 0  # Default max connections
 
-        self.transport = Transport(addr, "s")
+        self.transport = Transport("s")
 
-        print(f"Server listening on {addr}")
-
-    def start_server(self):
+    def start_server(self, addr):
         """
         Creates a server and binds it to the address provided during initialization.
         The server will start listening for incoming client connections. Whenever a client connects, 
         they preform a handshake with the server and any functions provided as listeners using the 
         add_connection_listener() method will be called.
         """
-        self.transport.start_server()
+        self.transport.start_server(addr)
         
     def close_sock(self, sock:socket.socket):
         """
