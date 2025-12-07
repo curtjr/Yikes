@@ -10,12 +10,21 @@ class Client():
         super().__init__()  
         self.addr = None
         self.transport = Transport("c")
-        self.listeners = {}
+        self.listeners = []
 
     def connect(self, addr):
         "'Establish connection to the server and preform security handshake'"
         self.addr = addr
-        self.transport.start_client()
+        self.transport.start_client(addr)
+
+    def close_sock(self, sock):
+        """
+        Closes the provided socket.
+        
+        Args:
+            sock(socket.socket): The socket you want to close.
+        """
+        sock.close()
 
     def send_bytes(self, data:bytes):
         "'Sends bytes to the connected server'"
