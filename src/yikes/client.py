@@ -6,14 +6,15 @@ class Client():
     Client class used for connecting to a server.
     To create a client please use the create_client() function!
     """
-    def __init__(self, addr:tuple):
+    def __init__(self):
         super().__init__()  
-        self.addr = addr
-        self.transport = Transport(addr, "c")
+        self.addr = None
+        self.transport = Transport("c")
         self.listeners = {}
 
-    def connect(self):
+    def connect(self, addr):
         "'Establish connection to the server and preform security handshake'"
+        self.addr = addr
         self.transport.start_client()
 
     def send_bytes(self, data:bytes):
