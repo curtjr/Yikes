@@ -9,9 +9,9 @@ from yikes.rsakey import RSAKey
 from yikes.fernetkey import FernetKey
 
 class Transport():
-    def __init__(self,addr:tuple, mode:str):
+    def __init__(self, mode:str):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.addr = addr
+        self.addr = None
         self.max_connections = 0
 
         if mode == "s":
@@ -40,8 +40,9 @@ class Transport():
             self.private_key = None
             self.public_key = None
 
-    def start_client(self):
-        self.sock.connect(self.addr)
+    def start_client(self, addr):
+        self.addr = addr
+        self.sock.connect(addr)
         self.sock.setblocking(True)
 
         self.FK = FernetKey()
@@ -53,9 +54,10 @@ class Transport():
         # initialize a local Fernet instance for the client side
         self.fernet = Fernet(self.fernet_key)
         
-    def start_server(self):
+    def start_server(self, server_addr):
+        self.addr = server_addr
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.sock.bind(self.addr)
+        self.sock.bind(server_addr)
         if self.max_connections == 0:
             self.sock.listen(socket.SOMAXCONN)
         else:
