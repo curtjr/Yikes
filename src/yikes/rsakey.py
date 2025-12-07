@@ -1,8 +1,6 @@
 from cryptography.hazmat.primitives import serialization
-from yikes.socks import send_key, receive_fernet_key, receive_public_key
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
-import os
 
 class RSAKey():
     def __init__(self):

@@ -9,17 +9,16 @@ class Client():
     def __init__(self, addr:tuple):
         super().__init__()  
         self.addr = addr
-        self.transport = Transport(addr)
+        self.transport = Transport(addr, "c")
         self.listeners = {}
 
     def connect(self):
-        "'Establish connection to the server via transport and preform a handshake'"
-        self.transport.connect()
+        "'Establish connection to the server and preform security handshake'"
         self.transport.start_client()
 
-    def send_bytes(self, bytes:bytes):
+    def send_bytes(self, data:bytes):
         "'Sends bytes to the connected server'"
-        self.transport.send_bytes(bytes)
+        self.transport.send_bytes(data)
 
     def recv_bytes(self) -> bytes:
         "'Receives bytes from the connected server'"

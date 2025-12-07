@@ -12,7 +12,7 @@ class Server():
 
         self.max_connections = 0  # Default max connections
 
-        self.transport = Transport(addr)
+        self.transport = Transport(addr, "s")
 
         print(f"Server listening on {addr}")
 
@@ -23,7 +23,7 @@ class Server():
         they preform a handshake with the server and any functions provided as listeners using the 
         add_connection_listener() method will be called.
         """
-        Transport.start_server()
+        self.transport.start_server()
         
     def close_sock(self, sock:socket.socket):
         """
@@ -40,7 +40,8 @@ class Server():
 
         Returns:
             Dict[Addr]: A dictionary containing:
-                - The socket of the respective client address
+                - The socket of the respective client address accessible with the key "socket"
+                - The fernet key of the respective client address accessible with the key "fernet_key"
         """
         return self.transport.connections
 
@@ -54,7 +55,6 @@ class Server():
             max_connections(int): Maximum number of connections
         """
         self.max_connections = max_connections
-        self.server.listen(max_connections)
 
     def add_connection_listener(self, callback):
         """
@@ -65,3 +65,11 @@ class Server():
             callback(function): The function to be called on new connection
         """
         self.transport.listeners.append(callback)
+
+    def send_bytes(self, data:bytes, addr):
+        "'Sends bytes to the connected server'"
+        self.transport.send_bytes(data, addr)
+
+    def recv_bytes(self, addr) -> bytes:
+        "'Receives bytes from the connected server'"
+        return self.transport.recv_bytes(addr)
