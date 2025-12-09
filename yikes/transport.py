@@ -1,7 +1,5 @@
 import socket
 import struct
-import json
-import base64
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.fernet import Fernet
@@ -74,13 +72,13 @@ class Transport():
             self.sock.close()
 
     def handle_client(self, sock: socket.socket, addr):
-        self.send_key(sock, self.RK.public_key_bytes_der)
+        self.send_key(sock, self.RK.public_key_bytes_der) # type: ignore
 
         key_bytes = None
         while key_bytes is None:
             key_bytes = self.receive_fernet_key(sock)
             
-        fernet = Fernet(self.RK.private_key_decrypt(key_bytes))
+        fernet = Fernet(self.RK.private_key_decrypt(key_bytes)) # type: ignore
         # attach the per-connection Fernet object while preserving the socket
         if addr in self.connections:
             self.connections[addr]["fernet"] = fernet
@@ -131,14 +129,14 @@ class Transport():
             else:
                 fernet = self.fernet
                 sock = self.sock
-            encrypted_bytes = fernet.encrypt(bytes)
+            encrypted_bytes = fernet.encrypt(bytes) # type: ignore
             length = len(encrypted_bytes)
             header = struct.pack(">I", length)
             sock.sendall(header + encrypted_bytes)
         except Exception as e:
             print(f"Error sending bytes: {e}")
 
-    def recv_bytes(self, addr=None) -> bytes:
+    def recv_bytes(self, addr=None) -> bytes: # type: ignore
         """
         Waits for and receives data from a socket, and decrypts the data using a Fernet.
 
@@ -159,7 +157,7 @@ class Transport():
             length, = struct.unpack(">I", header)
             encrypted_bytes = self.recv_exact(sock, length)
 
-            bytes = fernet.decrypt(encrypted_bytes)
+            bytes = fernet.decrypt(encrypted_bytes) # type: ignore
             return bytes
         except Exception as e:
             print(f"Error receiving bytes: {e}")

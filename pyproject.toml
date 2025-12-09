@@ -3,8 +3,11 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "portal"
+name = "yikes"
 version = "0.1.0"
+dependencies = [
+    "cryptography>=41.0.0",
+]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["yikes"]
